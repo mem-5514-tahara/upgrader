@@ -47,7 +47,12 @@ class UpgraderAppStore extends UpgraderStore {
       final version = iTunes.version(response);
       if (version != null) {
         try {
-          appStoreVersion = Version.parse(version);
+          final normalized = version.split('+').first;
+          if (normalized != version && state.debugLogging) {
+            print(
+                "upgrader: version normalized: '$version' → '$normalized'");
+          }
+          appStoreVersion = Version.parse(normalized);
         } catch (e) {
           if (state.debugLogging) {
             print(
@@ -105,7 +110,12 @@ class UpgraderPlayStore extends UpgraderStore {
       final version = playStore.version(response);
       if (version != null) {
         try {
-          appStoreVersion = Version.parse(version);
+          final normalized = version.split('+').first;
+          if (normalized != version && state.debugLogging) {
+            print(
+                "upgrader: version normalized: '$version' → '$normalized'");
+          }
+          appStoreVersion = Version.parse(normalized);
         } catch (e) {
           if (state.debugLogging) {
             print(
@@ -120,7 +130,7 @@ class UpgraderPlayStore extends UpgraderStore {
       final mav = playStore.minAppVersion(response);
       if (mav != null) {
         try {
-          final minVersion = mav.toString();
+          final minVersion = mav.toString().split('+').first;
           minAppVersion = Version.parse(minVersion);
 
           if (state.debugLogging) {
@@ -227,7 +237,8 @@ class UpgraderAppcastStore extends UpgraderStore {
 
       try {
         if (criticalVersion.isNotEmpty &&
-            installedVersion < Version.parse(criticalVersion)) {
+            installedVersion <
+                Version.parse(criticalVersion.split('+').first)) {
           isCriticalUpdate = true;
         }
       } catch (e) {
@@ -239,7 +250,12 @@ class UpgraderAppcastStore extends UpgraderStore {
 
       if (bestItem.versionString != null) {
         try {
-          appStoreVersion = Version.parse(bestItem.versionString!);
+          final normalized = bestItem.versionString!.split('+').first;
+          if (normalized != bestItem.versionString && state.debugLogging) {
+            print(
+                "upgrader: version normalized: '${bestItem.versionString}' → '$normalized'");
+          }
+          appStoreVersion = Version.parse(normalized);
         } catch (e) {
           if (state.debugLogging) {
             print(

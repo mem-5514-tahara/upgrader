@@ -262,13 +262,9 @@ class Upgrader with WidgetsBindingObserver {
     }
 
     // Determine the installed version of this app.
-    late Version installedVersion;
-    try {
-      installedVersion = Version.parse(state.packageInfo!.version);
-    } catch (e) {
-      if (state.debugLogging) {
-        print('upgrader: installedVersion exception: $e');
-      }
+    final installedVersion = parseVersion(
+        state.packageInfo!.version, 'installedVersion', state.debugLogging);
+    if (installedVersion == null) {
       updateState(state.copyWithNull(versionInfo: null));
       return null;
     }
@@ -370,13 +366,10 @@ class Upgrader with WidgetsBindingObserver {
     var rv = false;
     final minVersion = state.minAppVersion ?? versionInfo?.minAppVersion;
     if (minVersion != null && state.packageInfo != null) {
-      try {
-        final installedVersion = Version.parse(state.packageInfo!.version);
+      final installedVersion = parseVersion(
+          state.packageInfo!.version, 'installedVersion', state.debugLogging);
+      if (installedVersion != null) {
         rv = installedVersion < minVersion;
-      } catch (e) {
-        if (state.debugLogging) {
-          print(e);
-        }
       }
     }
     return rv;
@@ -424,10 +417,12 @@ class Upgrader with WidgetsBindingObserver {
     }
 
     try {
-      final installedVersion = Version.parse(state.packageInfo!.version);
-
-      final available = versionInfo!.appStoreVersion! > installedVersion;
-      _updateAvailable = available ? versionInfo?.appStoreVersion : null;
+      final installedVersion = parseVersion(
+          state.packageInfo!.version, 'installedVersion', state.debugLogging);
+      if (installedVersion != null) {
+        final available = versionInfo!.appStoreVersion! > installedVersion;
+        _updateAvailable = available ? versionInfo?.appStoreVersion : null;
+      }
     } on Exception catch (e) {
       if (state.debugLogging) {
         print('upgrader: isUpdateAvailable: $e');
@@ -527,23 +522,13 @@ class Upgrader with WidgetsBindingObserver {
     }
     final versionAlerted = prefs.getString('lastVersionAlerted');
     if (versionAlerted != null) {
-      try {
-        _lastVersionAlerted = Version.parse(versionAlerted);
-      } catch (e) {
-        if (state.debugLogging) {
-          print('upgrader: lastVersionAlerted exception: $e');
-        }
-      }
+      _lastVersionAlerted = parseVersion(
+          versionAlerted, 'lastVersionAlerted', state.debugLogging);
     }
     final ignoredVersion = prefs.getString('userIgnoredVersion');
     if (ignoredVersion != null) {
-      try {
-        _userIgnoredVersion = Version.parse(ignoredVersion);
-      } catch (e) {
-        if (state.debugLogging) {
-          print('upgrader: userIgnoredVersion exception: $e');
-        }
-      }
+      _userIgnoredVersion =
+          parseVersion(ignoredVersion, 'userIgnoredVersion', state.debugLogging);
     }
 
     return true;
@@ -581,11 +566,13 @@ class Upgrader with WidgetsBindingObserver {
       String? version, String name, bool debugLogging) {
     if (version == null) return null;
     try {
-      return Version.parse(version);
+      final normalized = version.split('+').first;
+      if (normalized != version && debugLogging) {
+        print("upgrader: version normalized: '$version' → '$normalized'");
+      }
+      return Version.parse(normalized);
     } catch (e) {
-      // if (state.debugLogging) {
       print('upgrader: _parseVersion $name exception: $e');
-      // }
       return null;
     }
   }

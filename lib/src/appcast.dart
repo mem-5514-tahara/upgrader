@@ -62,8 +62,10 @@ class Appcast {
           bestItem = item;
         } else {
           try {
-            final itemVersion = Version.parse(item.versionString!);
-            final bestItemVersion = Version.parse(bestItem!.versionString!);
+            final itemVersion =
+                Version.parse(item.versionString!.split('+').first);
+            final bestItemVersion =
+                Version.parse(bestItem!.versionString!.split('+').first);
             if (itemVersion > bestItemVersion) {
               bestItem = item;
             }
@@ -93,8 +95,10 @@ class Appcast {
           bestItem = item;
         } else {
           try {
-            final itemVersion = Version.parse(item.versionString!);
-            final bestItemVersion = Version.parse(bestItem!.versionString!);
+            final itemVersion =
+                Version.parse(item.versionString!.split('+').first);
+            final bestItemVersion =
+                Version.parse(bestItem!.versionString!.split('+').first);
             if (itemVersion > bestItemVersion) {
               bestItem = item;
             }
@@ -301,7 +305,8 @@ class AppcastItem {
     if (supported) {
       if (maximumSystemVersion != null) {
         try {
-          final maxVersion = Version.parse(maximumSystemVersion!);
+          final maxVersion =
+              Version.parse(maximumSystemVersion!.split('+').first);
           if (osVersion > maxVersion) {
             supported = false;
           }
@@ -311,7 +316,8 @@ class AppcastItem {
       }
       if (supported && minimumSystemVersion != null) {
         try {
-          final minVersion = Version.parse(minimumSystemVersion!);
+          final minVersion =
+              Version.parse(minimumSystemVersion!.split('+').first);
           if (osVersion < minVersion) {
             supported = false;
           }
@@ -323,7 +329,8 @@ class AppcastItem {
           minimumUpdateVersion != null &&
           currentAppVersion != null) {
         try {
-          final minUpdateVersion = Version.parse(minimumUpdateVersion!);
+          final minUpdateVersion =
+              Version.parse(minimumUpdateVersion!.split('+').first);
           if (currentAppVersion < minUpdateVersion) {
             supported = false;
           }

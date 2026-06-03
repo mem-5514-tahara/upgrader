@@ -1375,6 +1375,75 @@ void main() {
     verifyMessages(UpgraderMessages(code: 'vi'), 'vi');
     verifyMessages(UpgraderMessages(code: 'zh'), 'zh');
   }, skip: false);
+
+  test('parseVersion strips build metadata from version string', () {
+    final result = Upgrader.parseVersion('1.2.3+45', 'test', false);
+    expect(result, isNotNull);
+    expect(result, equals(Version.parse('1.2.3')));
+    expect(result! > Version.parse('1.2.3'), isFalse);
+  });
+
+  test('parseVersion leaves clean version string unchanged', () {
+    final result = Upgrader.parseVersion('1.2.3', 'test', false);
+    expect(result, isNotNull);
+    expect(result, equals(Version.parse('1.2.3')));
+  });
+
+  testWidgets(
+      'isUpdateAvailable returns false when installed version has build metadata matching store version',
+      (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      final client = MockITunesSearchClient.setupMockClient();
+      final upgrader = Upgrader(
+        upgraderOS: MockUpgraderOS(ios: true),
+        client: client,
+        debugLogging: true,
+      );
+
+      upgrader.installPackageInfo(
+          packageInfo: PackageInfo(
+              appName: 'Upgrader',
+              packageName: 'com.larryaasen.upgrader',
+              version: '1.2.3+45',
+              buildNumber: '45'));
+
+      expect(await upgrader.initialize(), isTrue);
+
+      upgrader.updateState(upgrader.state.copyWith(
+          versionInfo: UpgraderVersionInfo(
+              appStoreVersion: Version.parse('1.2.3'))));
+
+      expect(upgrader.isUpdateAvailable(), isFalse);
+    });
+  });
+
+  testWidgets(
+      'isUpdateAvailable returns true when installed version with build metadata is genuinely older',
+      (WidgetTester tester) async {
+    await tester.runAsync(() async {
+      final client = MockITunesSearchClient.setupMockClient();
+      final upgrader = Upgrader(
+        upgraderOS: MockUpgraderOS(ios: true),
+        client: client,
+        debugLogging: true,
+      );
+
+      upgrader.installPackageInfo(
+          packageInfo: PackageInfo(
+              appName: 'Upgrader',
+              packageName: 'com.larryaasen.upgrader',
+              version: '1.2.2+99',
+              buildNumber: '99'));
+
+      expect(await upgrader.initialize(), isTrue);
+
+      upgrader.updateState(upgrader.state.copyWith(
+          versionInfo: UpgraderVersionInfo(
+              appStoreVersion: Version.parse('1.2.3'))));
+
+      expect(upgrader.isUpdateAvailable(), isTrue);
+    });
+  });
 }
 
 void verifyMessages(UpgraderMessages messages, String code) {
